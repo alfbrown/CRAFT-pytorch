@@ -4,8 +4,22 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 from torchvision import models
-from torchvision.models.vgg import model_urls
+#from torchvision.models.vgg import model_urls
+import pkgutil
+import torchvision
+from importlib import import_module
 
+def get_torchvision_models():
+    model_urls = dict()
+    for _, name, ispkg in pkgutil.walk_packages(torchvision.models.__path__):
+        if ispkg:
+            continue
+        _zoo = import_module(f'torchvision.models.{name}')
+        if hasattr(_zoo, 'model_urls'):
+            _urls = getattr(_zoo, 'model_urls')
+            model_urls.update(_urls)
+    return model_urls
+    
 def init_weights(modules):
     for m in modules:
         if isinstance(m, nn.Conv2d):
